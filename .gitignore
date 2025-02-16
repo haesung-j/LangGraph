@@ -44,3 +44,5 @@ node_modules/
 .coverage
 htmlcov/ 
 .github/
+.gitmessage.txt
+
