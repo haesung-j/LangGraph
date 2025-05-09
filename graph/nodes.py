@@ -1,5 +1,7 @@
-import yaml
 import os
+import yaml
+
+from pathlib import Path
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage, AIMessage, ToolMessage
@@ -8,7 +10,11 @@ from langgraph.types import StreamWriter
 from pydantic import BaseModel
 from typing import List
 
-load_dotenv()
+BASE_DIR = Path(__file__).parents[1]
+ENV_PATH = BASE_DIR / ".env"
+load_dotenv(ENV_PATH)
+
+
 MODEL_NAME = os.getenv("MODEL_NAME")
 TEMPERATURE = os.getenv("TEMPERATURE")
 

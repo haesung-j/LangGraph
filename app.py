@@ -8,37 +8,37 @@ from typing import Optional
 st.set_page_config(page_title="Meta Prompt Generator", page_icon="🤖", layout="wide")
 
 st.title("Meta Prompt Generator 🤖")
-st.markdown("LLM과 대화하며 프롬프트를 생성해보세요.")
+st.markdown("Talk to LLM and generate prompts.")
 
 # 세션 상태 초기화
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# thread_id 초기화 (세션별 고유 ID)
+# Initialize thread_id (unique ID per session)
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = str(uuid.uuid4())
 
-# 이전 메시지 표시
+# Show previous message
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 사용자 입력
-if prompt := st.chat_input("메시지를 입력하세요"):
-    # 사용자 메시지 표시
+# User input
+if prompt := st.chat_input("Enter your message"):
+    # Displaying user messages
     with st.chat_message("human"):
         st.markdown(prompt)
 
-    # 메시지 저장
+    # Save a message
     st.session_state.messages.append({"role": "human", "content": prompt})
 
-    # AI 응답 생성
+    # Generate AI responses
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
 
         try:
-            # SSE 스트림 연결
+            # SSE Stream Connections
             with requests.get(
                 "http://localhost:8000/chat/stream",
                 params={"query": prompt, "thread_id": st.session_state.thread_id},
@@ -51,7 +51,7 @@ if prompt := st.chat_input("메시지를 입력하세요"):
                     if line.strip():
                         if line.startswith("data: "):
                             try:
-                                # JSON 파싱
+                                # Parsing JSON
                                 data = json.loads(line.split("data: ")[-1])
 
                                 if "text" in data:
@@ -62,23 +62,23 @@ if prompt := st.chat_input("메시지를 입력하세요"):
                                     break
 
                             except json.JSONDecodeError as e:
-                                st.error(f"JSON 파싱 에러: {e}")
+                                st.error(f"JSON parsing errors: {e}")
                                 continue
 
                             time.sleep(0.01)
 
-            # 최종 응답 표시
+            # Show final response
             message_placeholder.markdown(full_response)
 
-            # AI 응답 저장
+            # Save AI responses
             st.session_state.messages.append(
                 {"role": "assistant", "content": full_response}
             )
 
         except requests.exceptions.RequestException as e:
-            st.error(f"네트워크 에러: {str(e)}")
+            st.error(f"Network errors: {str(e)}")
         except Exception as e:
-            st.error(f"예상치 못한 에러: {str(e)}")
+            st.error(f"Unexpected errors: {str(e)}")
 
-# 디버깅용 세션 정보 표시 (필요시 주석 해제)
+# Show session information for debugging (uncomment as needed)
 # st.sidebar.write("Session Thread ID:", st.session_state.thread_id)
